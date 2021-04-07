@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TelescopeApp</string>
+    <string name="opening_statement">Hi, Welcome to our app! This page will show you your current X and Y angle!</string>
+    <string name="the_x_angle_is">The X Angle is -</string>
+    <string name="the_y_angle_is">The Y Angle is -</string>
+    <string name="the_z_angle_is">The Z Angle is -</string>
+</resources>
