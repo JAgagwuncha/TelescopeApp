@@ -4,4 +4,6 @@
     <string name="the_x_angle_is">The X Angle is -</string>
     <string name="the_y_angle_is">The Y Angle is -</string>
     <string name="the_z_angle_is">The Z Angle is -</string>
+    <string name="textview">TextView</string>
+    <string name="update_values">Update Values</string>
 </resources>

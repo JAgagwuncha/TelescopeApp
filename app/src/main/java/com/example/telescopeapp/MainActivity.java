@@ -1,104 +1,104 @@
 package com.example.telescopeapp;
 
-import androidx.annotation.RequiresApi;
-import androidx.appcompat.app.AppCompatActivity;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements SensorEventListener {
+import androidx.appcompat.app.AppCompatActivity;
 
-    SensorManager sensorManager;
+import java.util.List;
+
+
+
+public class MainActivity extends AppCompatActivity implements SensorEventListener, View.OnClickListener{
+
+    //Declare Attributes here
+    SensorManager sm;
     Sensor sensor;
-    private TextView mXTextView;
-    private TextView mYTextView;
-    private TextView mZTextView;
-    private final float[] accelerometerReading = new float[3];
-    private final float[] magnetometerReading = new float[3];
+    TextView textView1;
+    Button button;
+    List list;
+    Boolean update;
+    View v;
 
-    private final float[] rotationMatrix = new float[9];
-    private final float[] orientationAngles = new float[3];
+    SensorEventListener sel = new SensorEventListener(){
+        public void onAccuracyChanged(Sensor sensor, int accuracy) {}
+        public void onSensorChanged(SensorEvent event) {
+            float[] values = event.values;
+            textView1.setText("x: "+values[0]+"\ny: "+values[1]+"\nz: "+values[2]);
+        }
+    };
+
 
     public MainActivity() {
+//        button.setOnClickListener(new MainActivity());
     }
 
-    @Override
+
+    //Determine what will be created when the
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        sensorManager = (SensorManager)getSystemService(SENSOR_SERVICE);
-        sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GAME_ROTATION_VECTOR);
-        mXTextView = findViewById(R.id.acc_x);
-//        mYTextView = findViewById(R.id.acc_y);
-//        mZTextView = findViewById(R.id.acc_z);
+        update = Boolean.FALSE;
+
+        /* Get a SensorManager instance */
+        sm = (SensorManager)getSystemService(SENSOR_SERVICE);
+
+        textView1 = (TextView)findViewById(R.id.textView1);
+        Button button = (Button) findViewById(R.id.update);
+        button.setOnClickListener(this::onClick);
+
+
+        list = sm.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        getPosition(list);
 
     }
 
-    // Get readings from accelerometer and magnetometer. To simplify calculations,
-    // consider storing these readings as unit vectors.
+    protected void onStop() {
+        if(list.size()>0){
+            sm.unregisterListener(sel);
+        }
+        super.onStop();
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-            System.arraycopy(event.values, 0, accelerometerReading,
-                    0, accelerometerReading.length);
-        } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            System.arraycopy(event.values, 0, magnetometerReading,
-                    0, magnetometerReading.length);
-//            mXTextView.setText((int) magnetometerReading[0]);
-        }
 
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void onResume(){
-        super.onResume();
-
-        // Get updates from the accelerometer and magnetometer at a constant rate.
-        // To make batch operations more efficient and reduce power consumption,
-        // provide support for delaying updates to the application.
-        //
-        // In this example, the sensor reporting delay is small enough such that
-        // the application receives an update before the system checks the sensor
-        // readings again.
-        Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        if (accelerometer != null) {
-            sensorManager.registerListener(this, accelerometer,
-                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
+    public List getPosition(List list){
+        if(list.size()>0){
+            sm.registerListener(sel, (Sensor) list.get(0), SensorManager.SENSOR_DELAY_NORMAL);
+        }else{
+            Toast.makeText(getBaseContext(), "Error: No Accelerometer.", Toast.LENGTH_LONG).show();
         }
-        Sensor magneticField = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        if (magneticField != null) {
-            sensorManager.registerListener(this, magneticField,
-                    SensorManager.SENSOR_DELAY_NORMAL, SensorManager.SENSOR_DELAY_UI);
-        }
+        return list;
     }
 
-    protected void onPause(){
-        // Don't receive any more updates from either sensor.
-        super.onPause();
+//    button.setOnClickListener(new View.OnClickListener() {
+//        @Override
+//        public void onClick(View v) {
+//
+//            // Do something in response to button click
+//        }
+//    }
 
-        sensorManager.unregisterListener(this);
-    }
-
-    // Compute the three orientation angles based on the most recent readings from
-    // the device's accelerometer and magnetometer.
-    public void updateOrientationAngles() {
-        // Update rotation matrix, which is needed to update orientation angles.
-        SensorManager.getRotationMatrix(rotationMatrix, null,
-                accelerometerReading, magnetometerReading);
-
-        // "rotationMatrix" now has up-to-date information.
-
-        SensorManager.getOrientation(rotationMatrix, orientationAngles);
-
-        // "orientationAngles" now has up-to-date information.
+    @Override
+    public void onClick(View v) {
+//        System.out.println("Was pressed");
+        list = sm.getSensorList(Sensor.TYPE_ACCELEROMETER);
+        getPosition(list);
     }
 }
